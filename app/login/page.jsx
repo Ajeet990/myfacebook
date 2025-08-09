@@ -1,0 +1,77 @@
+"use client";
+
+import { useFormik } from "formik";
+import { loginValidationSchema } from "@/validations/loginValidation";
+import { useLoginUserMutation } from "../api/authApi";
+import { useRouter } from "next/navigation";
+
+export default function LoginPage() {
+  const router = useRouter();
+  const [login, { isLoading }] = useLoginUserMutation();
+
+  const formik = useFormik({
+    initialValues: { email: "", password: "" },
+    validationSchema: loginValidationSchema,
+    onSubmit: async (values) => {
+      try {
+        const res = await login(values).unwrap();
+        console.log("Login success:", res);
+        localStorage.setItem("token", res.token);
+        router.push("admin/dashboard"); // redirect
+      } catch (err) {
+        console.error("Login failed:", err);
+        alert("Login failed!");
+      }
+    },
+  });
+
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="w-full max-w-sm bg-white rounded-lg shadow-md p-6">
+        <h1 className="text-2xl font-bold text-center mb-6">Login</h1>
+        <form onSubmit={formik.handleSubmit} className="space-y-4">
+          {/* Email */}
+          <div>
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              value={formik.values.email}
+              onChange={formik.handleChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+            {formik.errors.email && formik.touched.email && (
+              <p className="text-red-500 text-sm mt-1">{formik.errors.email}</p>
+            )}
+          </div>
+
+          {/* Password */}
+          <div>
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              value={formik.values.password}
+              onChange={formik.handleChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+            {formik.errors.password && formik.touched.password && (
+              <p className="text-red-500 text-sm mt-1">
+                {formik.errors.password}
+              </p>
+            )}
+          </div>
+
+          {/* Submit */}
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition disabled:bg-gray-400"
+          >
+            {isLoading ? "Logging in..." : "Login"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
