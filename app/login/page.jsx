@@ -1,26 +1,35 @@
+
 "use client";
 
 import { useFormik } from "formik";
 import { loginValidationSchema } from "@/validations/loginValidation";
-import { useLoginUserMutation } from "../api/authApi";
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [login, { isLoading }] = useLoginUserMutation();
 
   const formik = useFormik({
     initialValues: { email: "", password: "" },
     validationSchema: loginValidationSchema,
     onSubmit: async (values) => {
       try {
-        const res = await login(values).unwrap();
-        console.log("Login success:", res);
-        localStorage.setItem("token", res.token);
-        router.push("admin/dashboard"); // redirect
+        const res = await signIn("credentials", {
+          redirect: false,
+          email: values.email,
+          password: values.password,
+        });
+
+        if (!res.error) {
+          console.log("Login success");
+          router.push("/admin/dashboard");
+        } else {
+          console.error("Login failed:", res.error);
+          alert(res.error);
+        }
       } catch (err) {
-        console.error("Login failed:", err);
-        alert("Login failed!");
+        console.error("Login error:", err);
+        alert("Something went wrong!");
       }
     },
   });
@@ -38,6 +47,7 @@ export default function LoginPage() {
               placeholder="Email"
               value={formik.values.email}
               onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
             {formik.errors.email && formik.touched.email && (
@@ -53,22 +63,20 @@ export default function LoginPage() {
               placeholder="Password"
               value={formik.values.password}
               onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
             {formik.errors.password && formik.touched.password && (
-              <p className="text-red-500 text-sm mt-1">
-                {formik.errors.password}
-              </p>
+              <p className="text-red-500 text-sm mt-1">{formik.errors.password}</p>
             )}
           </div>
 
           {/* Submit */}
           <button
             type="submit"
-            disabled={isLoading}
-            className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition disabled:bg-gray-400"
+            className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition"
           >
-            {isLoading ? "Logging in..." : "Login"}
+            Login
           </button>
         </form>
       </div>

@@ -23,7 +23,7 @@ enum Role {
 }
 
 model User {
-  id        BigInt   @id @default(autoincrement()) // Primary key as BIGINT for scalability
+  id        Int   @id @default(autoincrement()) // Primary key as BIGINT for scalability
   name      String                                // Full name of the user
   email     String   @unique                      // Unique email for login
   password  String                                // Hashed password
