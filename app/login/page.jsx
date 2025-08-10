@@ -30,7 +30,7 @@ export default function LoginPage() {
           if (session?.user?.role === 'ADMIN') {
             router.push("/admin/dashboard");
           } else {
-            router.push("/home");
+            router.push("/");
           }
         } else {
           console.error("Login failed:", res.error);

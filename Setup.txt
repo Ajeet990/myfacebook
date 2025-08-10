@@ -1,0 +1,3 @@
+install all dependencies
+
+RUN : openssl rand -base64 32  -> this will generate secrete key put it in .env file with key (NEXTAUTH_SECRET)

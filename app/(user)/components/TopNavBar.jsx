@@ -60,6 +60,9 @@ export default function TopNavbar() {
         <Link href="/contact-us" className={linkClassName("/contact-us")}>
           Contact Us
         </Link>
+        <Link href="/profile" className={linkClassName("/profile")}>
+          Profile
+        </Link>
         <Link href="/about" className={linkClassName("/about")}>
           About
         </Link>
