@@ -57,6 +57,9 @@ export default function TopNavbar() {
         <Link href="/" className={linkClassName("/")}>
           Home
         </Link>
+        <Link href="/my-posts" className={linkClassName("/my-posts")}>
+          My Posts
+        </Link>
         <Link href="/contact-us" className={linkClassName("/contact-us")}>
           Contact Us
         </Link>
