@@ -4,10 +4,19 @@ import { FaBars, FaTachometerAlt, FaUser, FaCog, FaSignOutAlt } from "react-icon
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 export default function Sidebar() {
   const { data: session, status } = useSession();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const router = useRouter();
+
+  const handleLogOut = async () => {
+    await signOut({ redirect: false });
+    toast.success("Logged out successfully.")
+    router.push('/login')
+  }
 
   return (
     <div
@@ -42,7 +51,7 @@ export default function Sidebar() {
         {
           session?.user?.name && (
             <button
-              onClick={() => signOut({ callbackUrl: "/login" })}
+              onClick={handleLogOut}
               className="flex items-center p-3 hover:bg-gray-700"
             >
               <FaSignOutAlt className="mr-2" />

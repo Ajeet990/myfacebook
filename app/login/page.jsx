@@ -3,8 +3,10 @@
 
 import { useFormik } from "formik";
 import { loginValidationSchema } from "@/validations/loginValidation";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import toast from 'react-hot-toast';
+
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,8 +23,15 @@ export default function LoginPage() {
         });
 
         if (!res.error) {
-          console.log("Login success");
-          router.push("/admin/dashboard");
+          toast.success("Logged in successfully.")
+          const session = await getSession();
+          // console.log("session:",session)
+
+          if (session?.user?.role === 'ADMIN') {
+            router.push("/admin/dashboard");
+          } else {
+            router.push("/home");
+          }
         } else {
           console.error("Login failed:", res.error);
           alert(res.error);

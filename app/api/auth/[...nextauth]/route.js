@@ -1,10 +1,6 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
-// import { PrismaClient } from "@prisma/client";
-
-// const prisma = new PrismaClient();
-
 import prisma from "@/app/lib/prisma";
 
 export const authOptions = {
@@ -29,6 +25,7 @@ export const authOptions = {
           id: user.id,
           name: user.name,
           email: user.email,
+          role: user.role, // <-- make sure this exists on your user model
         };
       },
     }),
@@ -52,6 +49,23 @@ export const authOptions = {
     },
     async deleteSession(sessionToken) {
       return await prisma.session.delete({ where: { sessionToken } });
+    },
+  },
+  callbacks: {
+    // called whenever a JWT token is created or updated
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;
+      }
+      return token;
+    },
+
+    // called whenever a session is checked/created
+    async session({ session, token }) {
+      if (token?.id) session.user.id = token.id;
+      if (token?.role) session.user.role = token.role;
+      return session;
     },
   },
 };
