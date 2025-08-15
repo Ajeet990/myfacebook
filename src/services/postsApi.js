@@ -1,5 +1,6 @@
 import { getSession } from "next-auth/react";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { get } from "react-hook-form";
 
 export const postsApi = createApi({
   reducerPath: "postsApi",
@@ -34,6 +35,16 @@ export const postsApi = createApi({
         body: { postId, userId },
       }),
     }),
+    commentOnPost: builder.mutation({
+      query: ({ postId, userId, text }) => ({
+        url: `posts/${postId}/comment`,
+        method: "POST",
+        body: { userId, text },
+      }),
+    }),
+    getPostComments: builder.query({
+      query: (postId) => `posts/${postId}/comment`,
+    }),
   }),
 });
 
@@ -42,4 +53,6 @@ export const {
   useCreatePostMutation,
   useGetAllPostsQuery,
   useLikePostMutation,
+  useCommentOnPostMutation,
+  useGetPostCommentsQuery,
 } = postsApi;
