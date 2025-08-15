@@ -68,7 +68,7 @@ export default function MyPostsPage() {
       </div>
 
       {/* Posts Table */}
-      {data?.posts?.length === 0 ? (
+      {data?.data?.posts?.length === 0 ? (
         <p>No posts found.</p>
       ) : (
         <div className="overflow-x-auto">
@@ -81,7 +81,7 @@ export default function MyPostsPage() {
               </tr>
             </thead>
             <tbody>
-              {data?.posts?.map((post) => (
+              {data?.data?.posts?.map((post) => (
                 <tr key={post.id}>
                   <td className="border px-4 py-2">{post.text || "-"}</td>
                   <td className="border px-4 py-2">

@@ -4,23 +4,31 @@ import * as jose from "jose";
 
 const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
-// ✅ List of API routes that don't need authentication
 const publicApiRoutes = [
   "/api/public",
-  "/api/posts/all", // Example: public posts
+  "/api/posts/all",
   "/api/auth/register",
   "/api/auth/login",
+  "/api/get-all-post", // ✅ Public endpoint
 ];
 
 export default withAuth(
   async function middleware(req) {
-    const { token } = req.nextauth;
     const pathname = req.nextUrl.pathname;
 
+    // ✅ Allow public API routes without authentication
+    const isPublic = publicApiRoutes.some((route) =>
+      pathname.startsWith(route)
+    );
+    if (isPublic) {
+      return NextResponse.next();
+    }
+
+    const { token } = req.nextauth;
     let decodedUser = null;
     const authHeader = req.headers.get("authorization");
 
-    // ✅ Decode JWT using jose (Edge-compatible)
+    // ✅ Decode JWT from Authorization header
     if (authHeader?.startsWith("Bearer ")) {
       const jwtToken = authHeader.substring(7).trim();
       try {
@@ -31,17 +39,12 @@ export default withAuth(
       }
     }
 
-    // ❌ Block API requests without valid JWT unless route is public
+    // ❌ Block API requests without valid JWT
     if (pathname.startsWith("/api") && !decodedUser) {
-      const isPublic = publicApiRoutes.some((route) =>
-        pathname.startsWith(route)
+      return NextResponse.json(
+        { success: false, message: "Unauthorized" },
+        { status: 401 }
       );
-      if (!isPublic) {
-        return NextResponse.json(
-          { success: false, message: "Unauthorized" },
-          { status: 401 }
-        );
-      }
     }
 
     // 🔒 Restrict /admin/** to ADMIN role
@@ -63,7 +66,13 @@ export default withAuth(
   },
   {
     callbacks: {
-      authorized: ({ token }) => !!token,
+      authorized: ({ req, token }) => {
+        const pathname = req.nextUrl.pathname;
+        const isPublic = publicApiRoutes.some((route) =>
+          pathname.startsWith(route)
+        );
+        return isPublic || !!token; // ✅ Allow if public OR has token
+      },
     },
   }
 );

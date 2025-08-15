@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma";
 import path from "path";
 import { writeFile } from "fs/promises";
+// import { sendResponse } from "@/app/lib/apiResponse";
+import { sendResponse } from "@/app/lib/apiResponses";
 
 // 📌 Helper: Get user from middleware-injected header
 function getUserFromRequest(request) {
@@ -13,10 +14,11 @@ export async function GET(request) {
   try {
     const user = getUserFromRequest(request);
     if (!user) {
-      return NextResponse.json(
-        { success: false, message: "Unauthorized" },
-        { status: 401 }
-      );
+      return sendResponse({
+        success: false,
+        message: "Unauthorized",
+        status: 401
+      });
     }
 
     const posts = await prisma.post.findMany({
@@ -29,13 +31,18 @@ export async function GET(request) {
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json({ success: true, posts });
+    return sendResponse({
+      success: true,
+      message: "Posts fetched successfully",
+      data: { posts }
+    });
   } catch (error) {
     console.error("Error fetching posts:", error);
-    return NextResponse.json(
-      { success: false, message: "Failed to fetch posts" },
-      { status: 500 }
-    );
+    return sendResponse({
+      success: false,
+      message: "Failed to fetch posts",
+      status: 500
+    });
   }
 }
 
@@ -43,10 +50,11 @@ export async function POST(request) {
   try {
     const user = getUserFromRequest(request);
     if (!user) {
-      return NextResponse.json(
-        { success: false, message: "Unauthorized" },
-        { status: 401 }
-      );
+      return sendResponse({
+        success: false,
+        message: "Unauthorized",
+        status: 401
+      });
     }
 
     const formData = await request.formData();
@@ -65,10 +73,11 @@ export async function POST(request) {
     }
 
     if (!text && !imageUrl) {
-      return NextResponse.json(
-        { success: false, message: "Text or image is required" },
-        { status: 400 }
-      );
+      return sendResponse({
+        success: false,
+        message: "Text or image is required",
+        status: 400
+      });
     }
 
     const post = await prisma.post.create({
@@ -79,12 +88,17 @@ export async function POST(request) {
       },
     });
 
-    return NextResponse.json({ success: true, post });
+    return sendResponse({
+      success: true,
+      message: "Post created successfully",
+      data: post
+    });
   } catch (error) {
     console.error("Error creating post:", error);
-    return NextResponse.json(
-      { success: false, message: "Failed to create post" },
-      { status: 500 }
-    );
+    return sendResponse({
+      success: false,
+      message: "Failed to create post",
+      status: 500
+    });
   }
 }

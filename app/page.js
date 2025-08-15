@@ -1,9 +1,9 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useGetAllPostsQuery } from "@/src/services/postsApi";
 import UserLayout from "./(user)/layout";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 export default function HomePage() {
   return (
@@ -15,24 +15,48 @@ export default function HomePage() {
 
 function Posts() {
   const { data: session, status } = useSession();
-  const { data, error, isLoading } = useGetAllPostsQuery();
+  const [posts, setPosts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [commentPostId, setCommentPostId] = useState(null);
 
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        setIsLoading(true);
+        const res = await fetch("/api/get-all-post");
+        
+        if (!res.ok) throw new Error("Failed to fetch posts");
+
+        const data = await res.json(); // ✅ parse body
+        // console.log("Posts data:", data);
+
+        setPosts(data.data.posts || []); // assuming your API sends { data: { posts: [...] } }
+      } catch (err) {
+        console.error("Error fetching posts:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchPosts();
+  }, []);
+
   if (isLoading) return <p>Loading posts...</p>;
-  if (error) return <p>Error fetching posts.</p>;
+  if (error) return <p>Error fetching posts: {error}</p>;
 
   const handleLike = (postId) => {
     if (status !== "authenticated") {
-      alert("Please log in to like posts");
+      // alert("Please log in to like posts");
+      toast.error("Please log in to like posts");
       return;
     }
-    // TODO: Call like API
     console.log("Liked post", postId);
+    // TODO: Call like API here
   };
 
   const handleComment = (postId) => {
     if (status !== "authenticated") {
-      alert("Please log in to comment");
+      toast.error("Please log in to comment on posts");
       return;
     }
     setCommentPostId(postId);
@@ -41,7 +65,7 @@ function Posts() {
   return (
     <div className="max-w-2xl mx-auto py-6">
       <h1 className="text-2xl font-bold mb-4">Latest Posts</h1>
-      {data?.posts?.map((post) => (
+      {posts.map((post) => (
         <div key={post.id} className="border rounded p-4 mb-4 shadow-sm">
           <div className="flex items-center gap-2 mb-2">
             <span className="font-semibold">{post.author.name}</span>
@@ -76,7 +100,6 @@ function Posts() {
         </div>
       ))}
 
-      {/* Simple Comment Modal */}
       {commentPostId && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
           <div className="bg-white p-6 rounded shadow-lg w-full max-w-md">
@@ -94,7 +117,6 @@ function Posts() {
               </button>
               <button
                 onClick={() => {
-                  // TODO: call comment API
                   console.log("Comment submitted for", commentPostId);
                   setCommentPostId(null);
                 }}
