@@ -27,11 +27,19 @@ export const postsApi = createApi({
         body: formData,
       }),
     }),
+    likePost: builder.mutation({
+      query: ({ postId, userId }) => ({
+        url: `posts/like`,
+        method: "POST",
+        body: { postId, userId },
+      }),
+    }),
   }),
 });
 
 export const {
   useGetPostsQuery,
   useCreatePostMutation,
-  useGetAllPostsQuery
+  useGetAllPostsQuery,
+  useLikePostMutation,
 } = postsApi;

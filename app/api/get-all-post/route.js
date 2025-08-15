@@ -1,34 +1,49 @@
 import prisma from "@/app/lib/prisma";
 import { sendResponse } from "@/app/lib/apiResponses";
 
+// app/api/get-all-post/route.js
 export async function GET() {
   try {
-    // Fetch all posts from all users, newest first
     const posts = await prisma.post.findMany({
-      orderBy: { createdAt: "desc" },
       include: {
         author: {
-          select: {
-            id: true,
-            name: true,
-          },
+          select: { 
+            id: true, 
+            name: true 
+          }
         },
         likes: {
-          select: { id: true }, // just ids, enough for .length
+          select: { 
+            id: true,
+            userId: true  // ← This is crucial! Include userId
+          }
         },
         comments: {
-          select: { id: true }, // just ids, enough for .length
-        },
+          include: {
+            user: {
+              select: { 
+                id: true, 
+                name: true 
+              }
+            }
+          }
+        }
       },
+      orderBy: { createdAt: 'desc' }
     });
 
     return sendResponse({
       success: true,
       message: "Posts fetched successfully",
       data: { posts },
+      status: 200,
     });
   } catch (error) {
     console.error("Error fetching posts:", error);
-    return sendResponse(500, { error: "Failed to fetch posts" });
+    return sendResponse({
+      success: false,
+      message: "Failed to fetch posts",
+      status: 500,
+    });
   }
 }
