@@ -17,7 +17,9 @@ const BodySchema = z.object({
 /**
  * GET - Fetch all comments for a post
  */
-export async function GET(request, { params }) {
+export async function GET(request, context) {
+  const params = await context.params; // ✅ no redeclare conflict
+
   const parsedParams = ParamsSchema.safeParse(params);
   if (!parsedParams.success) {
     return sendResponse({
@@ -56,6 +58,7 @@ export async function GET(request, { params }) {
     });
   }
 }
+
 
 /**
  * POST - Add a comment to a post
