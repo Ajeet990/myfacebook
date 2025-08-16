@@ -7,7 +7,7 @@ const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 const publicApiRoutes = [
   "/api/public",
   "/api/posts/all",
-  "/api/auth/register",
+  "/api/register",
   "/api/auth/login",
   "/api/get-all-post", // ✅ Public endpoint
 ];

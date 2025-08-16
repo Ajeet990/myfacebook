@@ -6,6 +6,7 @@ import { loginValidationSchema } from "@/validations/loginValidation";
 import { signIn, getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import toast from 'react-hot-toast';
+import Link from "next/link";
 
 
 export default function LoginPage() {
@@ -87,6 +88,12 @@ export default function LoginPage() {
           >
             Login
           </button>
+          <p className="text-center text-sm mt-4">
+            Don’t have an account?{" "}
+            <Link href="/register" className="text-blue-500 hover:underline">
+              Register here
+            </Link>
+          </p>
         </form>
       </div>
     </div>

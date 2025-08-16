@@ -14,7 +14,14 @@ export const authApi = createApi({
     getSession: builder.query({
       query: () => "auth/session",
     }),
+    register: builder.mutation({
+      query: (userData) => ({
+        url: "register",
+        method: "POST",
+        body: userData,
+      }),
+    }),
   }),
 });
 
-export const { useLoginMutation, useGetSessionQuery } = authApi;
+export const { useLoginMutation, useGetSessionQuery, useRegisterMutation } = authApi;
