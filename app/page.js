@@ -32,11 +32,21 @@ function Posts() {
   const [likePost] = useLikePostMutation();
   const [commentOnPost, { isLoading: commentLoading }] =
     useCommentOnPostMutation();
-  const { data: commentsData, isFetching: commentsLoading } =
-    useGetPostCommentsQuery(commentPostId, {
-      skip: !commentPostId,
-    });
+  const { data: commentsData, refetch, isFetching: commentsLoading } = useGetPostCommentsQuery(commentPostId, {
+    skip: !commentPostId, // Only run if we have a postId
+  });
+  // const { data: commentsData, isFetching: commentsLoading } =
+  //   useGetPostCommentsQuery(commentPostId, {
+  //     skip: !commentPostId,
+  //   });
 
+  useEffect(() => {
+    if (commentPostId) {
+      refetch(); // Force latest data when modal opens
+    }
+  }, [commentPostId, refetch]);
+
+  
   useEffect(() => {
     const fetchPosts = async () => {
       try {
@@ -196,8 +206,8 @@ function Posts() {
               <button
                 disabled={isCurrentlyLiking}
                 className={`hover:underline disabled:opacity-50 transition-colors ${isLiked
-                    ? "text-blue-600 font-semibold"
-                    : "text-gray-600"
+                  ? "text-blue-600 font-semibold"
+                  : "text-gray-600"
                   } ${isCurrentlyLiking
                     ? "cursor-not-allowed"
                     : "cursor-pointer"
