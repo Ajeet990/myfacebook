@@ -16,19 +16,17 @@ export default withAuth(
   async function middleware(req) {
     const pathname = req.nextUrl.pathname;
 
-    // ✅ Allow public API routes without authentication
+    // ✅ Public API routes
     const isPublic = publicApiRoutes.some((route) =>
       pathname.startsWith(route)
     );
-    if (isPublic) {
-      return NextResponse.next();
-    }
+    if (isPublic) return NextResponse.next();
 
     const { token } = req.nextauth;
     let decodedUser = null;
     const authHeader = req.headers.get("authorization");
 
-    // ✅ Decode JWT from Authorization header
+    // ✅ Decode JWT manually if Bearer token exists
     if (authHeader?.startsWith("Bearer ")) {
       const jwtToken = authHeader.substring(7).trim();
       try {
@@ -47,32 +45,42 @@ export default withAuth(
       );
     }
 
-    // 🔒 Restrict /admin/** to ADMIN role
+    // 🔒 Restrict /admin/**
     if (pathname.startsWith("/admin")) {
       if (token?.role !== "ADMIN") {
         return NextResponse.redirect(new URL("/not-found", req.url));
       }
     }
 
-    // 📦 Forward decoded user to API route
+    // 📦 Forward decoded user
     const requestHeaders = new Headers(req.headers);
     if (decodedUser) {
       requestHeaders.set("x-user", JSON.stringify(decodedUser));
     }
 
-    return NextResponse.next({
-      request: { headers: requestHeaders },
-    });
+    return NextResponse.next({ request: { headers: requestHeaders } });
   },
   {
     callbacks: {
+      // 👇 prevent redirect for APIs
       authorized: ({ req, token }) => {
         const pathname = req.nextUrl.pathname;
         const isPublic = publicApiRoutes.some((route) =>
           pathname.startsWith(route)
         );
-        return isPublic || !!token; // ✅ Allow if public OR has token
+
+        if (pathname.startsWith("/api")) {
+          // for APIs → just check token, no redirects
+          return isPublic || !!token;
+        }
+
+        // for pages → allow only if token exists
+        return isPublic || !!token;
       },
+    },
+    // 👇 very important
+    pages: {
+      signIn: "/login", // redirect only for UI, not APIs
     },
   }
 );
