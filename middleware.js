@@ -1,107 +1,107 @@
-import { withAuth } from "next-auth/middleware";
-import { NextResponse } from "next/server";
-import * as jose from "jose";
+// import { withAuth } from "next-auth/middleware";
+// import { NextResponse } from "next/server";
+// import * as jose from "jose";
 
-const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+// const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
-const publicApiRoutes = [
-  "/api/public",
-  "/api/posts/all",
-  "/api/register",
-  "/api/auth/login",
-  "/api/get-all-post",
-  "/api/auth", // Add this to allow NextAuth routes
-];
+// const publicApiRoutes = [
+//   "/api/public",
+//   "/api/posts/all",
+//   "/api/register",
+//   "/api/auth/login",
+//   "/api/get-all-post",
+//   "/api/auth", // Add this to allow NextAuth routes
+// ];
 
-export default withAuth(
-  async function middleware(req) {
-    const pathname = req.nextUrl.pathname;
+// export default withAuth(
+//   async function middleware(req) {
+//     const pathname = req.nextUrl.pathname;
 
-    // ✅ Allow public APIs and NextAuth routes
-    if (publicApiRoutes.some((route) => pathname.startsWith(route))) {
-      return NextResponse.next();
-    }
+//     // ✅ Allow public APIs and NextAuth routes
+//     if (publicApiRoutes.some((route) => pathname.startsWith(route))) {
+//       return NextResponse.next();
+//     }
 
-    let decodedUser = null;
+//     let decodedUser = null;
 
-    // ✅ 1. Check Authorization header
-    const authHeader = req.headers.get("authorization");
-    if (authHeader?.startsWith("Bearer ")) {
-      try {
-        const { payload } = await jose.jwtVerify(
-          authHeader.substring(7).trim(),
-          secret
-        );
-        decodedUser = payload;
-      } catch (err) {
-        console.error("Invalid Bearer token:", err);
-      }
-    }
+//     // ✅ 1. Check Authorization header
+//     const authHeader = req.headers.get("authorization");
+//     if (authHeader?.startsWith("Bearer ")) {
+//       try {
+//         const { payload } = await jose.jwtVerify(
+//           authHeader.substring(7).trim(),
+//           secret
+//         );
+//         decodedUser = payload;
+//       } catch (err) {
+//         console.error("Invalid Bearer token:", err);
+//       }
+//     }
 
-    // ✅ 2. If no Bearer token, fall back to NextAuth session token (cookies)
-    if (!decodedUser && req.nextauth?.token) {
-      decodedUser = req.nextauth.token;
-    }
+//     // ✅ 2. If no Bearer token, fall back to NextAuth session token (cookies)
+//     if (!decodedUser && req.nextauth?.token) {
+//       decodedUser = req.nextauth.token;
+//     }
 
-    // ❌ Not authenticated → return JSON for API routes
-    if (pathname.startsWith("/api") && !decodedUser) {
-      return NextResponse.json(
-        { success: false, message: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+//     // ❌ Not authenticated → return JSON for API routes
+//     if (pathname.startsWith("/api") && !decodedUser) {
+//       return NextResponse.json(
+//         { success: false, message: "Unauthorized" },
+//         { status: 401 }
+//       );
+//     }
 
-    // ✅ Attach user to request
-    if (decodedUser) {
-      const requestHeaders = new Headers(req.headers);
-      requestHeaders.set("x-user", JSON.stringify(decodedUser));
-      return NextResponse.next({ request: { headers: requestHeaders } });
-    }
+//     // ✅ Attach user to request
+//     if (decodedUser) {
+//       const requestHeaders = new Headers(req.headers);
+//       requestHeaders.set("x-user", JSON.stringify(decodedUser));
+//       return NextResponse.next({ request: { headers: requestHeaders } });
+//     }
 
-    return NextResponse.next();
-  },
-  {
-    callbacks: {
-      authorized: ({ req, token }) => {
-        const pathname = req.nextUrl.pathname;
+//     return NextResponse.next();
+//   },
+//   {
+//     callbacks: {
+//       authorized: ({ req, token }) => {
+//         const pathname = req.nextUrl.pathname;
         
-        // Always allow NextAuth API routes
-        if (pathname.startsWith("/api/auth")) {
-          return true;
-        }
+//         // Always allow NextAuth API routes
+//         if (pathname.startsWith("/api/auth")) {
+//           return true;
+//         }
         
-        // Allow public routes
-        const isPublic = publicApiRoutes.some((route) =>
-          pathname.startsWith(route)
-        );
+//         // Allow public routes
+//         const isPublic = publicApiRoutes.some((route) =>
+//           pathname.startsWith(route)
+//         );
         
-        if (isPublic) {
-          return true;
-        }
+//         if (isPublic) {
+//           return true;
+//         }
         
-        // For API routes, we handle authorization in the middleware function
-        // Return true here to prevent NextAuth from redirecting API calls
-        if (pathname.startsWith("/api")) {
-          return true;
-        }
+//         // For API routes, we handle authorization in the middleware function
+//         // Return true here to prevent NextAuth from redirecting API calls
+//         if (pathname.startsWith("/api")) {
+//           return true;
+//         }
         
-        // For page routes, require token
-        return !!token;
-      },
-    },
-    pages: {
-      signIn: "/", // Only redirect page routes, not API routes
-    },
-  }
-);
+//         // For page routes, require token
+//         return !!token;
+//       },
+//     },
+//     pages: {
+//       signIn: "/", // Only redirect page routes, not API routes
+//     },
+//   }
+// );
 
-export const config = {
-  matcher: [
-    "/admin/:path*", 
-    "/profile/:path*", 
-    "/api/((?!auth|public|posts/all|register|get-all-post).+)"
-  ],
-};
+// export const config = {
+//   matcher: [
+//     "/admin/:path*", 
+//     "/profile/:path*", 
+//     "/api/((?!auth|public|posts/all|register|get-all-post).+)"
+//   ],
+// };
 
 
 
@@ -197,87 +197,87 @@ export const config = {
 // };
 
 
-// import { NextResponse } from "next/server";
-// import * as jose from "jose";
-// import { getToken } from "next-auth/jwt";
+import { NextResponse } from "next/server";
+import * as jose from "jose";
+import { getToken } from "next-auth/jwt";
 
-// const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
-// const publicApiRoutes = [
-//   "/api/public",
-//   "/api/posts/all", 
-//   "/api/register",
-//   "/api/auth",
-//   "/api/get-all-post",
-// ];
+const publicApiRoutes = [
+  "/api/public",
+  "/api/posts/all", 
+  "/api/register",
+  "/api/auth",
+  "/api/get-all-post",
+];
 
-// export async function middleware(req) {
-//   const pathname = req.nextUrl.pathname;
+export async function middleware(req) {
+  const pathname = req.nextUrl.pathname;
 
-//   // ✅ Allow public APIs and NextAuth routes
-//   if (publicApiRoutes.some((route) => pathname.startsWith(route))) {
-//     return NextResponse.next();
-//   }
+  // ✅ Allow public APIs and NextAuth routes
+  if (publicApiRoutes.some((route) => pathname.startsWith(route))) {
+    return NextResponse.next();
+  }
 
-//   let decodedUser = null;
+  let decodedUser = null;
 
-//   // ✅ 1. Check Authorization header (JWT)
-//   const authHeader = req.headers.get("authorization");
-//   if (authHeader?.startsWith("Bearer ")) {
-//     try {
-//       const { payload } = await jose.jwtVerify(
-//         authHeader.substring(7).trim(),
-//         secret
-//       );
-//       decodedUser = payload;
-//     } catch (err) {
-//       console.error("Invalid Bearer token:", err);
-//     }
-//   }
+  // ✅ 1. Check Authorization header (JWT)
+  const authHeader = req.headers.get("authorization");
+  if (authHeader?.startsWith("Bearer ")) {
+    try {
+      const { payload } = await jose.jwtVerify(
+        authHeader.substring(7).trim(),
+        secret
+      );
+      decodedUser = payload;
+    } catch (err) {
+      console.error("Invalid Bearer token:", err);
+    }
+  }
 
-//   // ✅ 2. If no Bearer token, check NextAuth session
-//   if (!decodedUser) {
-//     try {
-//       const token = await getToken({ 
-//         req, 
-//         secret: process.env.NEXTAUTH_SECRET 
-//       });
-//       if (token) {
-//         decodedUser = token;
-//       }
-//     } catch (err) {
-//       console.error("Error getting NextAuth token:", err);
-//     }
-//   }
+  // ✅ 2. If no Bearer token, check NextAuth session
+  if (!decodedUser) {
+    try {
+      const token = await getToken({ 
+        req, 
+        secret: process.env.NEXTAUTH_SECRET 
+      });
+      if (token) {
+        decodedUser = token;
+      }
+    } catch (err) {
+      console.error("Error getting NextAuth token:", err);
+    }
+  }
 
-//   // ❌ Not authenticated
-//   if (!decodedUser) {
-//     // For API routes, return 401
-//     if (pathname.startsWith("/api")) {
-//       return NextResponse.json(
-//         { success: false, message: "Unauthorized" },
-//         { status: 401 }
-//       );
-//     }
+  // ❌ Not authenticated
+  if (!decodedUser) {
+    // For API routes, return 401
+    if (pathname.startsWith("/api")) {
+      return NextResponse.json(
+        { success: false, message: "Unauthorized" },
+        { status: 401 }
+      );
+    }
     
-//     // For page routes, redirect to sign-in
-//     return NextResponse.redirect(new URL("/", req.url));
-//   }
+    // For page routes, redirect to sign-in
+    return NextResponse.redirect(new URL("/", req.url));
+  }
 
-//   // ✅ Attach user to request
-//   const requestHeaders = new Headers(req.headers);
-//   requestHeaders.set("x-user", JSON.stringify(decodedUser));
+  // ✅ Attach user to request
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set("x-user", JSON.stringify(decodedUser));
   
-//   return NextResponse.next({ 
-//     request: { headers: requestHeaders } 
-//   });
-// }
+  return NextResponse.next({ 
+    request: { headers: requestHeaders } 
+  });
+}
 
-// export const config = {
-//   matcher: [
-//     "/admin/:path*",
-//     "/profile/:path*", 
-//     "/api/((?!auth|public|posts/all|register|get-all-post).+)"
-//   ],
-// };
+export const config = {
+  matcher: [
+    "/admin/:path*",
+    "/profile/:path*", 
+    "/api/((?!auth|public|posts/all|register|get-all-post).+)"
+  ],
+};
 
