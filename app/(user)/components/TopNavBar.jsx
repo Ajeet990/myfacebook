@@ -69,6 +69,9 @@ export default function TopNavbar() {
         <Link href="/about" className={linkClassName("/about")}>
           About
         </Link>
+        <Link href="/chat-ai" className={linkClassName("/chat-ai")}>
+          Chat AI
+        </Link>
       </div>
 
       {/* Right user info */}
