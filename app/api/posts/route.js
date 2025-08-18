@@ -98,6 +98,7 @@ export async function POST(request) {
     return sendResponse({
       success: false,
       message: "Failed to create post",
+      error: error.message,
       status: 500
     });
   }
